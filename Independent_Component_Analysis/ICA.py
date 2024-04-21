@@ -29,15 +29,16 @@ def ScalingMatrix_Estimation(Y1, Y2, Theta):
 
     # Compute the variances along the rotation axes theta and (theta - pi/2)
     # Compute the rotated coordinates
-    Scaling_1 = Y1 * np.cos(Theta) + Y2 * np.sin(Theta)
-    Scaling_2 = Y1 * np.cos(Theta - (np.pi/2)) + Y2 * np.sin(Theta - (np.pi/2))
+    Scaling_1 = (Y1**2) * (np.cos(Theta))**2 + 2 * Y1 * Y2 * (np.cos(Theta)) * (np.sin(Theta)) + (Y2**2) * (np.sin(Theta))**2
+
+    Scaling_2 = (Y1**2) * (np.cos(Theta - (np.pi/ .2)))**2 + 2 * Y1 * Y2 * (np.cos(Theta - (np.pi/ .2))) * (np.sin(Theta - (np.pi/ .2))) + (Y2**2) * (np.sin(Theta - (np.pi/ .2)))**2
 
     # The Variances 's1' and 's2'
-    s1 = np.sum((Scaling_1)**2)
-    s2 = np.sum((Scaling_2)**2)
+    s1 = np.sum(Scaling_1)
+    s2 = np.sum(Scaling_2)
 
     # Construct the scaling matrix
-    Scaling_Matrix = np.diag([1 / s1, 1 / s2])
+    Scaling_Matrix = np.diag([1. / s1, 1. / s2])
     return Scaling_Matrix
 
 
@@ -91,27 +92,20 @@ image2 = cv2.resize(image2, (1024, 1024))
 # Get the Linear Mixing Matrix from the images
 M = Decomposition(image1, image2)
 
-
+# Apply the decomposition to the input images
 Im = np.concatenate([image1.reshape(1, -1), image2.reshape(1, -1)], axis=0)
 Im = np.matmul(M, Im)
 
+# Reshape and normalize the separated images
 i1 = Im[0, :]
 i2 = Im[1, :]
 
 i1, i2 = i1 - i1.min(), i2 - i2.min()
 i1, i2 = i1 * 255. / i1.max(), i2 * 255. / i2.max()
 
-h1 = i1
-h2 = i2
-h1 -= float(i1.min())
-h1 *= 255 / h1.max()
+# Convert the separated images back to uint8
+h1 = i1.reshape(image1.shape).clip(0, 255).astype(np.uint8)
+h2 = i2.reshape(image2.shape).clip(0, 255).astype(np.uint8)
 
-X1 = h1.reshape(image1.shape).clip(0, 255).astype(np.uint8)
-
-h2 -= float(i2.min())
-h2 *= 255 / h2.max()
-
-X2 = h2.reshape(image2.shape).clip(0, 255).astype(np.uint8)
-
-cv2.imwrite('1-ICA.png', X1)
-cv2.imwrite('2-ICA.png', X2)
+cv2.imwrite('1-ICA.png', h1)
+cv2.imwrite('2-ICA.png', h2)
