@@ -33,7 +33,7 @@ def process_images(image_directory):
     cv2.imshow("Averaged Image", average_image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-    cv2.imwrite('Averaged_Image.png', average_image)
+    cv2.imwrite('Averaged_Image_Set4.png', average_image)
 
 # Argument Parser
 def parse_arguments():
