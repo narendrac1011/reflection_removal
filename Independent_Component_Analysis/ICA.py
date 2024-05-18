@@ -67,3 +67,51 @@ def Decomposition(Y1, Y2):
     M_inv = np.matmul(R2_inv, np.matmul(S_inv, R1_inv))
 
     return M_inv
+
+
+# Argument Parser
+def parse_arguments():
+    parser = argparse.ArgumentParser(description = "Reflection Removal using ICA")
+    parser.add_argument("-i1", "--image1", required = True, help = "Input image 1")
+    parser.add_argument("-i2", "--image2", required = True, help = "Input image 2")
+    return parser.parse_args()
+
+# Main
+if __name__ == "__main__":
+    args = parse_arguments()
+    i1 = args.image1
+    i2 = args.image2
+    image1 = cv2.imread(i1).astype(np.float32)
+    image2 = cv2.imread(i2).astype(np.float32)
+
+# Resize the images to make sure that their shape is standard
+image1 = cv2.resize(image1, (1024, 1024))
+image2 = cv2.resize(image2, (1024, 1024))
+
+# Get the Linear Mixing Matrix from the images
+M = Decomposition(image1, image2)
+
+
+Im = np.concatenate([image1.reshape(1, -1), image2.reshape(1, -1)], axis=0)
+Im = np.matmul(M, Im)
+
+i1 = Im[0, :]
+i2 = Im[1, :]
+
+i1, i2 = i1 - i1.min(), i2 - i2.min()
+i1, i2 = i1 * 255. / i1.max(), i2 * 255. / i2.max()
+
+h1 = i1
+h2 = i2
+h1 -= float(i1.min())
+h1 *= 255 / h1.max()
+
+X1 = h1.reshape(image1.shape).clip(0, 255).astype(np.uint8)
+
+h2 -= float(i2.min())
+h2 *= 255 / h2.max()
+
+X2 = h2.reshape(image2.shape).clip(0, 255).astype(np.uint8)
+
+cv2.imwrite('A1.png', X1)
+cv2.imwrite('B2.png', X2)
