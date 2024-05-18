@@ -113,5 +113,5 @@ h2 *= 255 / h2.max()
 
 X2 = h2.reshape(image2.shape).clip(0, 255).astype(np.uint8)
 
-cv2.imwrite('A1.png', X1)
-cv2.imwrite('B2.png', X2)
+cv2.imwrite('1-ICA.png', X1)
+cv2.imwrite('2-ICA.png', X2)
